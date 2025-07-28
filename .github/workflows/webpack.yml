@@ -1,28 +1,37 @@
-name: NodeJS with Webpack
+name: Deploy Vite site to GitHub Pages (pnpm)
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main # 如果你主分支是 master，请改为 master
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x]
-
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8 # 使用你想要的版本
 
-    - name: Build
-      run: |
-        npm install
-        npx webpack
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build site
+        run: pnpm build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
